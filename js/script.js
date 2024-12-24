@@ -35,6 +35,8 @@ let d = Number($d.value);
 let dt = 0.05;
 let paused = true;
 
+let vectorCache = [];
+
 const steps = 30;
 const scale = 1 / 30;
 
@@ -44,22 +46,19 @@ function setup() {
   $reset.addEventListener("click", resetInputs);
   setupInputs();
   initInputs(hermit);
+  computeVectorField(steps, scale);
 }
 
 function draw() {
-  console.log(frameRate());
   background(20);
   stroke(255);
   strokeWeight(1);
   translate(width / 2, height / 2);
-
-  // Draw axes
   line(-width / 2, 0, width / 2, 0);
   line(0, -height / 2, 0, height / 2);
 
-  drawVectorField(steps, scale);
+  drawVectorField();
 
-  // Simulate a single trajectory
   noFill();
   stroke(255);
   beginShape();
@@ -72,10 +71,26 @@ function draw() {
   juliet += (c * romeo + d * juliet) * dt;
   points.push({ x: romeo * 50, y: juliet * 50 });
 
-  if (points.length > 500) points.shift();
+  if (points.length > 100) points.shift();
 }
 
-function drawVectorField(steps, scale) {
+function drawVectorField() {
+  for (const vector of vectorCache) {
+    const { x, y, normDr, normDj } = vector;
+    line(x, y, x + normDr, y - normDj);
+  }
+}
+
+function updateVectorField() {
+  clear();
+  background(20);
+  stroke(255);
+  strokeWeight(1);
+  line(-width / 2, 0, width / 2, 0);
+  line(0, -height / 2, 0, height / 2);
+
+  vectorCache = [];
+
   const xStart = -Math.floor(width / 2) * steps;
   const yStart = -Math.floor(height / 2) * steps;
 
@@ -90,24 +105,30 @@ function drawVectorField(steps, scale) {
       const normDr = Math.min(dr * scale, 10);
       const normDj = Math.min(dj * scale, 10);
 
-      stroke(150);
-      line(x, y, x + normDr, y - normDj);
+      vectorCache.push({ x, y, normDr, normDj });
     }
   }
+  drawVectorField();
 }
 
-function updateVectorField() {
-  clear(); // Clear canvas for a clean redraw
-  background(20);
+function computeVectorField(steps, scale) {
+  const xStart = -Math.floor(width / 2) * steps;
+  const yStart = -Math.floor(height / 2) * steps;
 
-  // Redraw axes
-  stroke(255);
-  strokeWeight(1);
-  line(-width / 2, 0, width / 2, 0);
-  line(0, -height / 2, 0, height / 2);
+  for (let x = xStart; x <= width / 2; x += steps) {
+    for (let y = yStart; y <= height / 2; y += steps) {
+      const r = x;
+      const j = -y;
 
-  // Draw updated vector field
-  drawVectorField();
+      const dr = a * r + b * j;
+      const dj = c * r + d * j;
+
+      const normDr = Math.min(dr * scale, 10);
+      const normDj = Math.min(dj * scale, 10);
+
+      vectorCache.push({ x, y, normDr, normDj });
+    }
+  }
 }
 
 function setupInputs() {
