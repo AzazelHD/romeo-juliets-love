@@ -1,0 +1,126 @@
+:root {
+  color-scheme: dark;
+  --bg-color: #121212;
+  --text-color: #ffffff;
+  --input-bg: #333333;
+  --input-border: #555555;
+  --input-focus: #1a1a1a;
+  --button-bg: #1e90ff;
+  --button-hover: #104e8b;
+  --button-active: #0b3d6e;
+  --controls-bg: rgba(0, 0, 0, 0.9);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: "Courier New", Courier, monospace;
+  color: var(--text-color);
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#toggleUI {
+  position: fixed;
+  left: 5px;
+  z-index: 20;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 10px;
+  transition: transform 0.2s ease;
+}
+
+#toggleUI:hover {
+  transform: scale(1.2);
+}
+
+#controls {
+  display: flex;
+  flex-direction: column;
+  border: 0;
+  position: fixed;
+  top: 50px;
+  left: 10px;
+  background: var(--controls-bg);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  gap: 10px;
+  z-index: 10;
+}
+
+#controls label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+#controls input[type="number"],
+#controls input[type="range"] {
+  flex: 1;
+  padding: 5px;
+  background: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+}
+
+#controls input[type="number"]:hover,
+#controls input[type="number"]:focus,
+#controls input[type="range"]:hover,
+#controls input[type="range"]:focus {
+  border-color: var(--input-focus);
+  outline: none;
+}
+
+#controls button {
+  padding: 6px 10px;
+  font-size: 14px;
+  background: var(--button-bg);
+  color: var(--text-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.3s ease;
+}
+
+#controls button:hover {
+  transform: scale(1.02);
+  background: var(--button-hover);
+}
+
+#controls button:active {
+  transform: scale(0.98);
+  background: var(--button-active);
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.button-container button {
+  flex: 1;
+  padding: 10px;
+  cursor: pointer;
+}
+
+[hidden] {
+  display: none !important;
+}

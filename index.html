@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Romeo and Juliet's Love</title>
+    <link rel="stylesheet" href="css/styles.css" />
+
+    <script src="node_modules/p5/lib/p5.min.js"></script>
+    <script type="module" src="js/script.js"></script>
+  </head>
+  <body>
+    <main>
+      <canvas id="canvas"></canvas>
+      <button id="toggleUI">☰</button>
+      <fieldset id="controls" hidden>
+        <label>a <input type="number" id="a" value="0.5" step="0.1" /></label>
+        <label>b <input type="number" id="b" value="-0.5" step="0.1" /></label>
+        <label>c <input type="number" id="c" value="0.5" step="0.1" /></label>
+        <label>d <input type="number" id="d" value="-0.5" step="0.1" /></label>
+        <label>dt <input type="range" id="dt" value="0.1" step="0.01" min="0" max="1" /></label>
+        <nav class="button-container">
+          <button id="play">Start</button>
+          <button id="reset">Reset</button>
+        </nav>
+      </fieldset>
+    </main>
+    <script>
+      const $toggleUIButton = document.getElementById("toggleUI");
+      const $controlsForm = document.getElementById("controls");
+
+      $toggleUIButton.addEventListener("click", () => {
+        const isHidden = $controlsForm.hasAttribute("hidden");
+        $controlsForm.toggleAttribute("hidden", !isHidden);
+        $toggleUIButton.textContent = isHidden ? "✖" : "☰";
+      });
+    </script>
+  </body>
+</html>
