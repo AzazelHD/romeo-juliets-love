@@ -9,6 +9,7 @@
   --button-hover: #104e8b;
   --button-active: #0b3d6e;
   --controls-bg: rgba(0, 0, 0, 0.9);
+  --header-bg: rgba(0, 0, 0, 0.7);
 }
 
 html,
@@ -30,44 +31,76 @@ canvas {
   height: 100%;
 }
 
+header {
+  position: absolute;
+  width: 100%;
+  background-color: var(--header-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+header h1 {
+  margin: auto;
+  font-size: 2rem;
+  text-align: center;
+  font-weight: normal;
+}
+
 #toggleUI {
-  position: fixed;
-  left: 5px;
-  z-index: 20;
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--text-color);
+  border-radius: 10px;
   font-size: 1.5rem;
   color: var(--text-color);
   cursor: pointer;
-  padding: 10px;
-  transition: transform 0.2s ease;
+  margin: 1rem;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  line-height: 1;
 }
 
 #toggleUI:hover {
-  transform: scale(1.2);
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+#toggleUI:active {
+  transform: scale(0.95);
 }
 
 #controls {
+  position: absolute;
+  top: 100%;
+  right: 0;
   display: flex;
   flex-direction: column;
   border: 0;
-  position: fixed;
-  top: 50px;
-  left: 10px;
-  background: var(--controls-bg);
+  margin: 0;
+  background: var(--header-bg);
   padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  border-radius: 0 0 0 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
   gap: 10px;
-  z-index: 10;
+  z-index: 9;
 }
 
 #controls label {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.9rem;
-  color: var(--text-color);
 }
 
 #controls input[type="number"],
@@ -75,9 +108,8 @@ canvas {
   flex: 1;
   padding: 5px;
   background: var(--input-bg);
-  color: var(--text-color);
   border: 1px solid var(--input-border);
-  border-radius: 3px;
+  border-radius: 5px;
 }
 
 #controls input[type="number"]:hover,
@@ -90,7 +122,7 @@ canvas {
 
 #controls button {
   padding: 6px 10px;
-  font-size: 14px;
+  font-size: 1rem;
   background: var(--button-bg);
   color: var(--text-color);
   border: none;

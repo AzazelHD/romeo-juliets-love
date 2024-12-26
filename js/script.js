@@ -1,5 +1,5 @@
-export const $ = (selector) => document.querySelector(selector);
-export const $$ = (selector) => document.querySelectorAll(selector);
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => document.querySelectorAll(selector);
 
 /*
 dR/dt = aR + bJ
@@ -7,14 +7,15 @@ dJ/dt = cR + dJ
 */
 
 let points = [];
+
 //types of different initial states
 const cautious = {
-  romeo: { love: 1, a: 0.5, b: 0.5 },
-  juliet: { love: 1, c: -0.5, d: 0.5 },
+  romeo: { love: 1, a: 0, b: 1 },
+  juliet: { love: 1, c: -1, d: 0 },
 };
 const hermit = {
-  romeo: { love: 1, a: 0.5, b: 0.5 },
-  juliet: { love: 1, c: 0.5, d: 0.5 },
+  romeo: { love: 1, a: 1, b: 1 },
+  juliet: { love: 1, c: 1, d: 1 },
 };
 
 let romeo = 1;
@@ -24,6 +25,7 @@ const $a = $("#a");
 const $b = $("#b");
 const $c = $("#c");
 const $d = $("#d");
+const $dt = $("#dt");
 const $reset = $("#reset");
 const $play = $("#play");
 
@@ -32,101 +34,119 @@ let b = Number($b.value);
 let c = Number($c.value);
 let d = Number($d.value);
 
-let dt = 0.05;
+let dt = 0.01;
 let paused = true;
 
 let vectorCache = [];
 
-const steps = 30;
-const scale = 1 / 30;
+const steps = 50;
 
 function setup() {
-  createCanvas(windowWidth, windowHeight, P2D, $("#canvas"));
+  createCanvas(windowWidth, windowHeight, WEBGL, $("#canvas"));
   $play.addEventListener("click", resume);
   $reset.addEventListener("click", resetInputs);
   setupInputs();
-  initInputs(hermit);
-  computeVectorField(steps, scale);
+  initInputs(cautious);
+  computeVectorField(steps);
 }
 
 function draw() {
   background(20);
   stroke(255);
   strokeWeight(1);
-  translate(width / 2, height / 2);
   line(-width / 2, 0, width / 2, 0);
   line(0, -height / 2, 0, height / 2);
 
   drawVectorField();
+  console.log(vectorCache);
+  console.log(frameRate());
 
   noFill();
-  stroke(255);
+  stroke(255, 100, 100, 90);
+  strokeWeight(3);
   beginShape();
   for (let p of points) {
-    vertex(p.x, -p.y);
+    vertex(p.x * steps, -p.y * steps);
   }
   endShape();
 
   romeo += (a * romeo + b * juliet) * dt;
   juliet += (c * romeo + d * juliet) * dt;
-  points.push({ x: romeo * 50, y: juliet * 50 });
+
+  points.push({ x: romeo, y: juliet });
 
   if (points.length > 100) points.shift();
 }
 
 function drawVectorField() {
   for (const vector of vectorCache) {
-    const { x, y, normDr, normDj } = vector;
-    line(x, y, x + normDr, y - normDj);
+    const { line, arrow } = vector;
+
+    // Draw the main vector line
+    beginShape(LINES);
+    vertex(line.x, line.y);
+    vertex(line.x + line.normDr, line.y - line.normDj);
+    endShape();
+
+    // Draw the arrowhead
+    triangle(arrow.endX, arrow.endY, arrow.leftX, arrow.leftY, arrow.rightX, arrow.rightY);
   }
 }
 
-function updateVectorField() {
-  clear();
+function updateVectorField(steps = 50, maxMagnitude = 15) {
+  vectorCache = [];
   background(20);
   stroke(255);
   strokeWeight(1);
   line(-width / 2, 0, width / 2, 0);
   line(0, -height / 2, 0, height / 2);
-
-  vectorCache = [];
-
-  const xStart = -Math.floor(width / 2) * steps;
-  const yStart = -Math.floor(height / 2) * steps;
-
-  for (let x = xStart; x <= width / 2; x += steps) {
-    for (let y = yStart; y <= height / 2; y += steps) {
-      const r = x;
-      const j = -y;
-
-      const dr = a * r + b * j;
-      const dj = c * r + d * j;
-
-      const normDr = Math.min(dr * scale, 10);
-      const normDj = Math.min(dj * scale, 10);
-
-      vectorCache.push({ x, y, normDr, normDj });
-    }
-  }
+  computeVectorField(steps, maxMagnitude);
   drawVectorField();
 }
 
-function computeVectorField(steps, scale) {
-  const xStart = -Math.floor(width / 2) * steps;
-  const yStart = -Math.floor(height / 2) * steps;
+function computeVectorField(steps = 50, maxMagnitude = 15) {
+  const offset = steps / 2;
+  const xStart = -Math.floor(width / 2 / steps) * steps - offset;
+  const yStart = -Math.floor(height / 2 / steps) * steps - offset;
 
-  for (let x = xStart; x <= width / 2; x += steps) {
-    for (let y = yStart; y <= height / 2; y += steps) {
+  const arrowSize = 5;
+
+  for (let y = yStart; y <= height / 2; y += steps) {
+    for (let x = xStart; x <= width / 2; x += steps) {
       const r = x;
       const j = -y;
 
       const dr = a * r + b * j;
       const dj = c * r + d * j;
 
-      const normDr = Math.min(dr * scale, 10);
-      const normDj = Math.min(dj * scale, 10);
+      let normDr = dr;
+      let normDj = dj;
 
-      vectorCache.push({ x, y, normDr, normDj });
+      // Calculate the magnitude of the vector
+      const magnitudeSq = normDr * normDr + normDj * normDj;
+      const maxMagnitudeSq = maxMagnitude * maxMagnitude;
+
+      // Normalize the vector if its magnitude exceeds the maximum allowed value
+      if (magnitudeSq > maxMagnitudeSq) {
+        const scale = Math.sqrt(maxMagnitudeSq / magnitudeSq);
+        normDr *= scale;
+        normDj *= scale;
+      }
+
+      // Precompute arrowhead geometry
+      const endX = x + normDr;
+      const endY = y - normDj;
+
+      const angle = Math.atan2(-normDj, normDr); // Negative because y-coordinates are inverted
+      const leftX = endX - arrowSize * Math.cos(angle + Math.PI / 6);
+      const leftY = endY - arrowSize * Math.sin(angle + Math.PI / 6);
+      const rightX = endX - arrowSize * Math.cos(angle - Math.PI / 6);
+      const rightY = endY - arrowSize * Math.sin(angle - Math.PI / 6);
+
+      vectorCache.push({
+        line: { x, y, normDr, normDj },
+        arrow: { endX, endY, leftX, leftY, rightX, rightY },
+      });
     }
   }
 }
@@ -134,19 +154,22 @@ function computeVectorField(steps, scale) {
 function setupInputs() {
   $a.addEventListener("input", () => {
     a = Number($a.value);
-    updateVectorField();
+    updateVectorField(steps);
   });
   $b.addEventListener("input", () => {
     b = Number($b.value);
-    updateVectorField();
+    updateVectorField(steps);
   });
   $c.addEventListener("input", () => {
     c = Number($c.value);
-    updateVectorField();
+    updateVectorField(steps);
   });
   $d.addEventListener("input", () => {
     d = Number($d.value);
-    updateVectorField();
+    updateVectorField(steps);
+  });
+  $dt.addEventListener("input", () => {
+    dt = Number($dt.value);
   });
 }
 
