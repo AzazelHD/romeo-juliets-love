@@ -34,26 +34,18 @@ canvas {
 header {
   position: absolute;
   width: 100%;
-  background-color: var(--header-bg);
-  display: flex;
-  justify-content: center;
+  display: grid;
   align-items: center;
+  grid-template-columns: 1fr auto 1fr;
+  background-color: var(--header-bg);
   z-index: 10;
 }
 
-.header {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
 header h1 {
-  margin: auto;
   font-size: 2rem;
   text-align: center;
   font-weight: normal;
+  grid-column-start: 2;
 }
 
 #toggleUI {
@@ -65,11 +57,9 @@ header h1 {
   cursor: pointer;
   margin: 1rem;
   padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: all 0.3s ease;
   line-height: 1;
+  justify-self: end;
 }
 
 #toggleUI:hover {

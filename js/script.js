@@ -1,3 +1,5 @@
+import { Particle } from "./particle.js";
+
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => document.querySelectorAll(selector);
 
@@ -5,8 +7,6 @@ const $$ = (selector) => document.querySelectorAll(selector);
 dR/dt = aR + bJ
 dJ/dt = cR + dJ
 */
-
-let points = [];
 
 //types of different initial states
 const cautious = {
@@ -18,9 +18,6 @@ const hermit = {
   juliet: { love: 1, c: 1, d: 1 },
 };
 
-let romeo = 1;
-let juliet = 1;
-
 const $a = $("#a");
 const $b = $("#b");
 const $c = $("#c");
@@ -29,25 +26,27 @@ const $dt = $("#dt");
 const $reset = $("#reset");
 const $play = $("#play");
 
-let a = Number($a.value);
-let b = Number($b.value);
-let c = Number($c.value);
-let d = Number($d.value);
+let a, b, c, d;
 
 let dt = 0.01;
 let paused = true;
 
+let points = [];
 let vectorCache = [];
 
 const steps = 50;
 
 function setup() {
+  background(20);
   createCanvas(windowWidth, windowHeight, WEBGL, $("#canvas"));
-  $play.addEventListener("click", resume);
-  $reset.addEventListener("click", resetInputs);
   setupInputs();
   initInputs(cautious);
   computeVectorField(steps);
+  for (let i = 0; i < 100; i++) {
+    const romeo = Math.random() - 0.5;
+    const juliet = Math.random() - 0.5;
+    points[i] = { x: romeo * width, y: juliet * height };
+  }
 }
 
 function draw() {
@@ -58,61 +57,54 @@ function draw() {
   line(0, -height / 2, 0, height / 2);
 
   drawVectorField();
-  console.log(vectorCache);
   console.log(frameRate());
 
   noFill();
-  stroke(255, 100, 100, 90);
-  strokeWeight(3);
-  beginShape();
+  stroke(255, 100, 100, 80);
+  strokeWeight(5);
+  beginShape(POINTS);
   for (let p of points) {
-    vertex(p.x * steps, -p.y * steps);
+    vertex(p.x, -p.y);
+
+    p.x += (a * p.x + b * p.y) * dt;
+    p.y += (c * p.x + d * p.y) * dt;
   }
   endShape();
-
-  romeo += (a * romeo + b * juliet) * dt;
-  juliet += (c * romeo + d * juliet) * dt;
-
-  points.push({ x: romeo, y: juliet });
-
-  if (points.length > 100) points.shift();
 }
 
 function drawVectorField() {
+  beginShape(LINES);
   for (const vector of vectorCache) {
-    const { line, arrow } = vector;
-
+    const { tail, arrow } = vector;
     // Draw the main vector line
-    beginShape(LINES);
-    vertex(line.x, line.y);
-    vertex(line.x + line.normDr, line.y - line.normDj);
-    endShape();
-
+    vertex(tail.x, tail.y);
+    vertex(tail.x + tail.normDr, tail.y - tail.normDj);
     // Draw the arrowhead
     triangle(arrow.endX, arrow.endY, arrow.leftX, arrow.leftY, arrow.rightX, arrow.rightY);
   }
+  endShape();
 }
 
-function updateVectorField(steps = 50, maxMagnitude = 15) {
+function updateVectorField(cols = 10, maxMagnitude = 15) {
   vectorCache = [];
   background(20);
   stroke(255);
   strokeWeight(1);
   line(-width / 2, 0, width / 2, 0);
   line(0, -height / 2, 0, height / 2);
-  computeVectorField(steps, maxMagnitude);
+  computeVectorField(cols, maxMagnitude);
   drawVectorField();
 }
 
-function computeVectorField(steps = 50, maxMagnitude = 15) {
-  const offset = steps / 2;
-  const xStart = -Math.floor(width / 2 / steps) * steps - offset;
-  const yStart = -Math.floor(height / 2 / steps) * steps - offset;
+function computeVectorField(cols = 10, maxMagnitude = 15) {
+  const offset = cols / 2;
+  const xStart = -Math.floor(width / 2 / cols) * cols - offset;
+  const yStart = -Math.floor(height / 2 / cols) * cols - offset;
 
   const arrowSize = 5;
 
-  for (let y = yStart; y <= height / 2; y += steps) {
-    for (let x = xStart; x <= width / 2; x += steps) {
+  for (let y = yStart; y <= height / 2; y += cols) {
+    for (let x = xStart; x <= width / 2; x += cols) {
       const r = x;
       const j = -y;
 
@@ -137,14 +129,14 @@ function computeVectorField(steps = 50, maxMagnitude = 15) {
       const endX = x + normDr;
       const endY = y - normDj;
 
-      const angle = Math.atan2(-normDj, normDr); // Negative because y-coordinates are inverted
+      const angle = Math.atan2(-normDj, normDr);
       const leftX = endX - arrowSize * Math.cos(angle + Math.PI / 6);
       const leftY = endY - arrowSize * Math.sin(angle + Math.PI / 6);
       const rightX = endX - arrowSize * Math.cos(angle - Math.PI / 6);
       const rightY = endY - arrowSize * Math.sin(angle - Math.PI / 6);
 
       vectorCache.push({
-        line: { x, y, normDr, normDj },
+        tail: { x, y, normDr, normDj },
         arrow: { endX, endY, leftX, leftY, rightX, rightY },
       });
     }
@@ -171,21 +163,25 @@ function setupInputs() {
   $dt.addEventListener("input", () => {
     dt = Number($dt.value);
   });
+
+  $play.addEventListener("click", resume);
+
+  $reset.addEventListener("click", reset);
 }
 
 function initInputs(initialConditions) {
-  romeo = initialConditions.romeo.love;
-  juliet = initialConditions.juliet.love;
   $a.value = a = initialConditions.romeo.a;
   $b.value = b = initialConditions.romeo.b;
   $c.value = c = initialConditions.juliet.c;
   $d.value = d = initialConditions.juliet.d;
+  $dt.value = dt;
 
   points = [];
   noLoop();
 }
 
-function resetInputs() {
+function reset() {
+  // background(20);
   $play.innerText = "Start";
   // $a.value = $d.value = "0";
   // $b.value = "1";
@@ -194,8 +190,8 @@ function resetInputs() {
   // a = d = 0;
   // b = 1;
   // c = -1;
-  romeo = 1;
-  juliet = 1;
+  // dt = 0.01;
+  // $dt.value = dt;
   points = [];
   paused = true;
   redraw();
