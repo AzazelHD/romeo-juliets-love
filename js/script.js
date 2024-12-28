@@ -42,11 +42,7 @@ function setup() {
   setupInputs();
   initInputs(cautious);
   computeVectorField(steps);
-  for (let i = 0; i < 100; i++) {
-    const romeo = Math.random() - 0.5;
-    const juliet = Math.random() - 0.5;
-    points[i] = { x: romeo * width, y: juliet * height };
-  }
+  randomizePoints();
 }
 
 function draw() {
@@ -64,10 +60,11 @@ function draw() {
   strokeWeight(5);
   beginShape(POINTS);
   for (let p of points) {
-    vertex(p.x, -p.y);
-
-    p.x += (a * p.x + b * p.y) * dt;
-    p.y += (c * p.x + d * p.y) * dt;
+    // vertex(p.x, -p.y);
+    // p.x += (a * p.x + b * p.y) * dt;
+    // p.y += (c * p.x + d * p.y) * dt;
+    p.show();
+    p.update((a * p.x + b * p.y) * dt, (c * p.x + d * p.y) * dt);
   }
   endShape();
 }
@@ -181,7 +178,7 @@ function initInputs(initialConditions) {
 }
 
 function reset() {
-  // background(20);
+  background(20);
   $play.innerText = "Start";
   // $a.value = $d.value = "0";
   // $b.value = "1";
@@ -192,7 +189,7 @@ function reset() {
   // c = -1;
   // dt = 0.01;
   // $dt.value = dt;
-  points = [];
+  randomizePoints();
   paused = true;
   redraw();
   noLoop();
@@ -206,6 +203,15 @@ function resume() {
   } else {
     $play.innerText = "Pause";
     loop();
+  }
+}
+
+function randomizePoints(size = 100) {
+  for (let i = 0; i < size; i++) {
+    const romeo = Math.random() - 0.5;
+    const juliet = Math.random() - 0.5;
+    // points[i]={ x: romeo * width, y: juliet * height };
+    points[i] = new Particle(romeo * width, juliet * height, color(255, 100, 100, 80));
   }
 }
 
