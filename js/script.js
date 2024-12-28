@@ -42,11 +42,12 @@ function setup() {
   setupInputs();
   initInputs(cautious);
   computeVectorField(steps);
-  randomizePoints();
+  randomizePoints(1);
+  noLoop();
 }
 
 function draw() {
-  background(20);
+  // background(20);
   stroke(255);
   strokeWeight(1);
   line(-width / 2, 0, width / 2, 0);
@@ -70,6 +71,8 @@ function draw() {
 }
 
 function drawVectorField() {
+  fill(255);
+  stroke(255);
   beginShape(LINES);
   for (const vector of vectorCache) {
     const { tail, arrow } = vector;
@@ -207,12 +210,14 @@ function resume() {
 }
 
 function randomizePoints(size = 100) {
+  points[0] = new Particle(10, 10, color(255, 100, 100, 80));
   for (let i = 0; i < size; i++) {
     const romeo = Math.random() - 0.5;
     const juliet = Math.random() - 0.5;
     // points[i]={ x: romeo * width, y: juliet * height };
-    points[i] = new Particle(romeo * width, juliet * height, color(255, 100, 100, 80));
+    // points[i] = new Particle(romeo * width, juliet * height, color(255, 100, 100, 80));
   }
+  loop();
 }
 
 function windowResized() {
