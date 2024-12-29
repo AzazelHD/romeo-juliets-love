@@ -9,13 +9,15 @@ dJ/dt = cR + dJ
 */
 
 //types of different initial states
-const cautious = {
-  romeo: { love: 1, a: 0, b: 1 },
-  juliet: { love: 1, c: -1, d: 0 },
-};
-const hermit = {
-  romeo: { love: 1, a: 1, b: 1 },
-  juliet: { love: 1, c: 1, d: 1 },
+const states = {
+  cautious: {
+    romeo: { love: 1, a: 0, b: 1 },
+    juliet: { love: 1, c: -1, d: 0 },
+  },
+  hermit: {
+    romeo: { love: 1, a: 1, b: 1 },
+    juliet: { love: 1, c: 1, d: 1 },
+  },
 };
 
 const $a = $("#a");
@@ -36,26 +38,20 @@ let vectorCache = [];
 
 const steps = 50;
 
-let font;
-
-let samples = [];
+const samples = new Array(40).fill(0);
+let sampleIndex = 0;
 let sum = 0;
-let maxSamples = 40;
+const maxSamples = 40;
 
-function preload() {
-  font = loadFont(
-    "http://fonts.gstatic.com/s/anonymouspro/v21/rP2Bp2a15UIB7Un-bOeISG3pLlw89CH98Ko.ttf"
-  );
-}
+function preload() {}
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL, $("#canvas"));
   background(20);
-  textFont(font);
   setupInputs();
-  initInputs(cautious);
+  initInputs(states.cautious);
   computeVectorField(steps);
-  randomizePoints();
+  randomizePoints(100, 10);
   noLoop();
 }
 
@@ -66,71 +62,56 @@ function draw() {
   line(-width / 2, 0, width / 2, 0);
   line(0, -height / 2, 0, height / 2);
   drawVectorField();
-  console.log("vector", vectorCache);
 
   const rate = frameRate();
   if (isFinite(rate)) {
-    sum += rate;
-    samples.push(rate);
-    if (samples.length > maxSamples) {
-      sum -= samples.shift();
-    }
+    sum = sum - samples[sampleIndex] + rate;
+    samples[sampleIndex] = rate;
+    sampleIndex = (sampleIndex + 1) % maxSamples;
   }
-  console.log(sum / samples.length);
-  textSize(32);
-  fill(255);
-  stroke(0);
-  strokeWeight(4);
-  text(sum / samples.length, 0, 0);
+  console.log("Avg FPS", sum / samples.length);
 
   stroke(255, 100, 100, 80);
   strokeWeight(5);
-  // beginShape();
   for (let p of points) {
-    // vertex(p.x, -p.y);
-    // p.x += (a * p.x + b * p.y) * speed;
-    // p.y += (c * p.x + d * p.y) * speed;
-
     p.show();
     p.update(a, b, c, d, speed);
   }
-  // endShape();
 }
 
 function drawVectorField() {
   beginShape(LINES);
   for (const vector of vectorCache) {
     const { tail, arrow } = vector;
-    // Draw the main vector line
     vertex(tail.x, tail.y);
     vertex(tail.x + tail.normDr, tail.y - tail.normDj);
-    // Draw the arrowhead
+    // triangles = -10 fps
     triangle(arrow.endX, arrow.endY, arrow.leftX, arrow.leftY, arrow.rightX, arrow.rightY);
   }
   endShape();
 }
 
-function computeVectorField(cols = 10, maxMagnitude = 15) {
-  const offset = cols / 2;
-  const xStart = -Math.floor(width / 2 / cols) * cols - offset;
-  const yStart = -Math.floor(height / 2 / cols) * cols - offset;
+function computeVectorField(steps = 20, maxMagnitude = 15) {
+  vectorCache.length = 0;
+  const offset = steps / 2;
+  const xStart = -Math.floor(width / 2 / steps) * steps - offset;
+  const yStart = -Math.floor(height / 2 / steps) * steps - offset;
 
   const arrowSize = 5;
+  const maxMagnitudeSq = maxMagnitude * maxMagnitude;
+  const PI_6 = Math.PI / 6;
 
-  for (let y = yStart; y <= height / 2; y += cols) {
-    for (let x = xStart; x <= width / 2; x += cols) {
+  for (let y = yStart; y <= height / 2; y += steps) {
+    for (let x = xStart; x <= width / 2; x += steps) {
       const r = x;
       const j = -y;
 
       const dr = a * r + b * j;
       const dj = c * r + d * j;
 
+      const magnitudeSq = dr * dr + dj * dj;
       let normDr = dr;
       let normDj = dj;
-
-      // Calculate the magnitude of the vector
-      const magnitudeSq = normDr * normDr + normDj * normDj;
-      const maxMagnitudeSq = maxMagnitude * maxMagnitude;
 
       // Normalize the vector if its magnitude exceeds the maximum allowed value
       if (magnitudeSq > maxMagnitudeSq) {
@@ -142,30 +123,46 @@ function computeVectorField(cols = 10, maxMagnitude = 15) {
       // Precompute arrowhead geometry
       const endX = x + normDr;
       const endY = y - normDj;
-
       const angle = Math.atan2(-normDj, normDr);
-      const leftX = endX - arrowSize * Math.cos(angle + Math.PI / 6);
-      const leftY = endY - arrowSize * Math.sin(angle + Math.PI / 6);
-      const rightX = endX - arrowSize * Math.cos(angle - Math.PI / 6);
-      const rightY = endY - arrowSize * Math.sin(angle - Math.PI / 6);
+
+      const cos1 = Math.cos(angle + PI_6);
+      const cos2 = Math.cos(angle - PI_6);
+      const sin1 = Math.sin(angle + PI_6);
+      const sin2 = Math.sin(angle - PI_6);
 
       vectorCache.push({
         tail: { x, y, normDr, normDj },
-        arrow: { endX, endY, leftX, leftY, rightX, rightY },
+        arrow: {
+          endX,
+          endY,
+          leftX: endX - arrowSize * cos1,
+          leftY: endY - arrowSize * sin1,
+          rightX: endX - arrowSize * cos2,
+          rightY: endY - arrowSize * sin2,
+        },
       });
     }
   }
 }
 
-function updateVectorField(cols = 10, maxMagnitude = 15) {
+function updateVectorField(steps, maxMagnitude) {
   vectorCache.length = 0;
   background(20);
   stroke(255);
   strokeWeight(1);
   line(-width / 2, 0, width / 2, 0);
   line(0, -height / 2, 0, height / 2);
-  computeVectorField(cols, maxMagnitude);
+  computeVectorField(steps, maxMagnitude);
   drawVectorField();
+}
+
+function randomizePoints(size = 100, trailLength = 0) {
+  points.length = 0;
+  for (let i = 0; i < size; i++) {
+    const romeo = Math.random() - 0.5;
+    const juliet = Math.random() - 0.5;
+    points[i] = new Particle(romeo * width, juliet * height, color(255, 100, 100, 80), trailLength);
+  }
 }
 
 function setupInputs() {
@@ -231,17 +228,6 @@ function resume() {
   } else {
     $play.innerText = "Pause";
     loop();
-  }
-}
-
-function randomizePoints(size = 100) {
-  // points[0] = { x: 10, y: 10 };
-  // points[0] = new Particle(50, 50, color(255, 100, 100, 80));
-  for (let i = 0; i < size; i++) {
-    const romeo = Math.random() - 0.5;
-    const juliet = Math.random() - 0.5;
-    // points[i]={ x: romeo * width, y: juliet * height };
-    points[i] = new Particle(romeo * width, juliet * height, color(255, 100, 100, 80));
   }
 }
 
