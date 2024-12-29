@@ -28,7 +28,7 @@ const $play = $("#play");
 
 let a, b, c, d;
 
-let dt = 0.01;
+let speed = 0.01;
 let paused = true;
 
 let points = [];
@@ -36,43 +36,68 @@ let vectorCache = [];
 
 const steps = 50;
 
+let font;
+
+let samples = [];
+let sum = 0;
+let maxSamples = 40;
+
+function preload() {
+  font = loadFont(
+    "http://fonts.gstatic.com/s/anonymouspro/v21/rP2Bp2a15UIB7Un-bOeISG3pLlw89CH98Ko.ttf"
+  );
+}
+
 function setup() {
-  background(20);
   createCanvas(windowWidth, windowHeight, WEBGL, $("#canvas"));
+  background(20);
+  textFont(font);
   setupInputs();
   initInputs(cautious);
   computeVectorField(steps);
-  randomizePoints(1);
+  randomizePoints();
   noLoop();
 }
 
 function draw() {
-  // background(20);
+  background(20);
   stroke(255);
   strokeWeight(1);
   line(-width / 2, 0, width / 2, 0);
   line(0, -height / 2, 0, height / 2);
-
   drawVectorField();
-  console.log(frameRate());
+  console.log("vector", vectorCache);
 
-  noFill();
+  const rate = frameRate();
+  if (isFinite(rate)) {
+    sum += rate;
+    samples.push(rate);
+    if (samples.length > maxSamples) {
+      sum -= samples.shift();
+    }
+  }
+  console.log(sum / samples.length);
+  textSize(32);
+  fill(255);
+  stroke(0);
+  strokeWeight(4);
+  text(sum / samples.length, 0, 0);
+
   stroke(255, 100, 100, 80);
   strokeWeight(5);
-  beginShape(POINTS);
+  // beginShape();
   for (let p of points) {
     // vertex(p.x, -p.y);
-    // p.x += (a * p.x + b * p.y) * dt;
-    // p.y += (c * p.x + d * p.y) * dt;
+    // p.x += (a * p.x + b * p.y) * speed;
+    // p.y += (c * p.x + d * p.y) * speed;
+
     p.show();
-    p.update((a * p.x + b * p.y) * dt, (c * p.x + d * p.y) * dt);
+    p.update(a, b, c, d, speed);
   }
-  endShape();
+  // endShape();
 }
 
 function drawVectorField() {
-  fill(255);
-  stroke(255);
   beginShape(LINES);
   for (const vector of vectorCache) {
     const { tail, arrow } = vector;
@@ -83,17 +108,6 @@ function drawVectorField() {
     triangle(arrow.endX, arrow.endY, arrow.leftX, arrow.leftY, arrow.rightX, arrow.rightY);
   }
   endShape();
-}
-
-function updateVectorField(cols = 10, maxMagnitude = 15) {
-  vectorCache = [];
-  background(20);
-  stroke(255);
-  strokeWeight(1);
-  line(-width / 2, 0, width / 2, 0);
-  line(0, -height / 2, 0, height / 2);
-  computeVectorField(cols, maxMagnitude);
-  drawVectorField();
 }
 
 function computeVectorField(cols = 10, maxMagnitude = 15) {
@@ -143,6 +157,17 @@ function computeVectorField(cols = 10, maxMagnitude = 15) {
   }
 }
 
+function updateVectorField(cols = 10, maxMagnitude = 15) {
+  vectorCache.length = 0;
+  background(20);
+  stroke(255);
+  strokeWeight(1);
+  line(-width / 2, 0, width / 2, 0);
+  line(0, -height / 2, 0, height / 2);
+  computeVectorField(cols, maxMagnitude);
+  drawVectorField();
+}
+
 function setupInputs() {
   $a.addEventListener("input", () => {
     a = Number($a.value);
@@ -161,7 +186,7 @@ function setupInputs() {
     updateVectorField(steps);
   });
   $dt.addEventListener("input", () => {
-    dt = Number($dt.value);
+    speed = Number($dt.value);
   });
 
   $play.addEventListener("click", resume);
@@ -174,7 +199,7 @@ function initInputs(initialConditions) {
   $b.value = b = initialConditions.romeo.b;
   $c.value = c = initialConditions.juliet.c;
   $d.value = d = initialConditions.juliet.d;
-  $dt.value = dt;
+  $dt.value = speed;
 
   points = [];
   noLoop();
@@ -210,14 +235,14 @@ function resume() {
 }
 
 function randomizePoints(size = 100) {
-  points[0] = new Particle(10, 10, color(255, 100, 100, 80));
+  // points[0] = { x: 10, y: 10 };
+  // points[0] = new Particle(50, 50, color(255, 100, 100, 80));
   for (let i = 0; i < size; i++) {
     const romeo = Math.random() - 0.5;
     const juliet = Math.random() - 0.5;
     // points[i]={ x: romeo * width, y: juliet * height };
-    // points[i] = new Particle(romeo * width, juliet * height, color(255, 100, 100, 80));
+    points[i] = new Particle(romeo * width, juliet * height, color(255, 100, 100, 80));
   }
-  loop();
 }
 
 function windowResized() {
@@ -228,6 +253,7 @@ function mousePressed() {}
 
 function mouseReleased() {}
 
+window.preload = preload;
 window.setup = setup;
 window.draw = draw;
 window.windowResized = windowResized;
