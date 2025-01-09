@@ -1,15 +1,12 @@
 :root {
-  color-scheme: dark;
-  --bg-color: #121212;
-  --text-color: #ffffff;
-  --input-bg: #333333;
-  --input-border: #555555;
-  --input-focus: #1a1a1a;
-  --button-bg: #1e90ff;
-  --button-hover: #104e8b;
-  --button-active: #0b3d6e;
-  --controls-bg: rgba(0, 0, 0, 0.9);
-  --header-bg: rgba(0, 0, 0, 0.7);
+  --header-bg: rgba(0, 0, 0, 0.8);
+  --text-color: #fff;
+  --input-bg: rgba(255, 255, 255, 0.1);
+  --input-border: rgba(255, 255, 255, 0.3);
+  --input-focus: rgba(255, 255, 255, 0.5);
+  --button-bg: rgba(255, 255, 255, 0.2);
+  --button-hover: rgba(255, 255, 255, 0.3);
+  --button-active: rgba(255, 255, 255, 0.4);
 }
 
 html,
@@ -49,25 +46,32 @@ header h1 {
 }
 
 #toggleUI {
-  background: rgba(255, 255, 255, 0.2);
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--button-bg);
   border: 2px solid var(--text-color);
   border-radius: 10px;
   font-size: 1.5rem;
   color: var(--text-color);
   cursor: pointer;
   margin: 1rem;
-  padding: 0.5rem;
+  padding: 0;
   transition: all 0.3s ease;
   line-height: 1;
   justify-self: end;
+  text-align: center;
 }
 
 #toggleUI:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
+  background: var(--button-hover);
+  transform: scale(1.05);
 }
 
 #toggleUI:active {
+  background: var(--button-active);
   transform: scale(0.95);
 }
 

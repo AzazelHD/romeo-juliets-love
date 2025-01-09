@@ -12,19 +12,35 @@
     <header>
       <h1>Romeo & Juliet's Love by Maths</h1>
       <button id="toggleUI">☰</button>
-      <fieldset id="controls" hidden>
-        <label>a <input type="number" id="a" value="0" step="0.01" /></label>
-        <label>b <input type="number" id="b" value="0" step="0.01" /></label>
-        <label>c <input type="number" id="c" value="0" step="0.01" /></label>
-        <label>d <input type="number" id="d" value="0" step="0.01" /></label>
-        <label
-          >Speed <input type="range" id="dt" value="0.01" step="0.01" min="0.01" max="0.1"
-        /></label>
-        <nav class="button-container">
+      <form id="controls" hidden>
+        <fieldset>
+          <legend>Romeo's Love (R)</legend>
+          <label>Romeo's self-influence:</label>
+          <input type="range" id="a" value="5" min="-2" max="2" step="0.1" />
+          <label>Juliet's influence on Romeo:</label>
+          <input type="range" id="b" value="5" min="-2" max="2" step="0.1" />
+        </fieldset>
+        <fieldset>
+          <legend>Juliet's Love (J)</legend>
+          <label>Juliet's self-influence:</label>
+          <input type="range" id="d" value="5" min="-2" max="2" step="0.1" />
+          <label>Romeo's influence on Juliet:</label>
+          <input type="range" id="e" value="5" min="-2" max="2" step="0.1" />
+        </fieldset>
+        <!-- <fieldset>
+          <legend>Combined Effects</legend>
+          <label>Synergy of their love:</label>
+          <input type="range" id="c" value="5" min="-2" max="2" step="0.1" />
+          <label>Relationship complexity:</label>
+          <input type="range" id="f" value="5" min="-2" max="2" step="0.1" />
+        </fieldset> -->
+        <label>Speed:</label
+        ><input type="range" id="speed" value="0.01" min="0.01" max="0.1" step="0.01" />
+        <nav>
           <button id="play">Start</button>
           <button id="reset">Reset</button>
         </nav>
-      </fieldset>
+      </form>
     </header>
     <main>
       <canvas id="canvas"></canvas>

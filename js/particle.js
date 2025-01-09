@@ -6,43 +6,57 @@ export class Particle {
     this.tail = trailLength > 0 ? new Array(trailLength) : null;
     this.trailLength = trailLength;
     this.tailIndex = 0;
-    // Pre-allocate tail
+
     if (this.tail) {
       for (let i = 0; i < trailLength; i++) {
         this.tail[i] = { x, y };
       }
     }
-    console.log(trailLength);
   }
 
-  update(a, b, c, d, speed) {
+  update(initConds, speed) {
+    const spd = speed / 10;
+
     if (this.tail) {
       this.tail[this.tailIndex].x = this.x;
       this.tail[this.tailIndex].y = this.y;
       this.tailIndex = (this.tailIndex + 1) % this.trailLength;
     }
 
-    this.x += (a * this.x + b * this.y) * speed;
-    this.y += (c * this.x + d * this.y) * speed;
+    const {
+      romeo: [a, b],
+      juliet: [c, d],
+    } = initConds;
+
+    // Center the particle coordinates
+    const r = this.x - width / 2;
+    const j = height / 2 - this.y;
+
+    // Compute vector components based on field equations
+    const dr = a * r + b * j;
+    const dj = c * r + d * j;
+
+    // Update position based on speed
+    this.x += dr * spd;
+    this.y -= dj * spd;
   }
 
   show() {
     push();
-    strokeWeight(2);
     if (!this.tail) {
-      point(this.x, -this.y);
+      point(this.x, this.y);
       return;
     }
 
     noFill();
-    beginShape();
+    beginShape(LINES);
     let idx = this.tailIndex;
     for (let i = 0; i < this.trailLength - 1; i++) {
       const current = this.tail[idx];
       idx = (idx + 1) % this.trailLength;
       const next = this.tail[idx];
-      vertex(current.x, -current.y);
-      vertex(next.x, -next.y);
+      vertex(current.x, current.y);
+      vertex(next.x, next.y);
     }
     endShape();
     pop();
