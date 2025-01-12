@@ -15,7 +15,7 @@ export class Particle {
   }
 
   update(initConds, speed) {
-    const spd = speed / 10;
+    const spd = speed / 100;
 
     if (this.tail) {
       this.tail[this.tailIndex].x = this.x;

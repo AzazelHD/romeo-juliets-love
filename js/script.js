@@ -12,22 +12,41 @@ dJ/dt = dR + eJ + [fRJ] [optional]
 // Narcissistic: a > 0, b < 0
 // Cautious: a < 0, b > 0
 // Hermit: a,b < 0
-const behaviours = {
-  hermit: [-1, -2, 0],
-  cautious: [-1, 1, 0],
-  eager_beaver: [2, 1, 0],
-  narcissistic: [1, -1, 0],
-};
+function scenarios(a, b) {
+  return {
+    fire_ice: [-b, -a],
+  };
+}
 
-const initConds = {
-  fire_ice: {
-    romeo: behaviours.eager_beaver,
-    juliet: behaviours.hermit,
-  },
-};
+// Fire & Ice: c = -b, a = -d
+// Eigen values = ± sqrt(a^2 - b^2)
 
-let romeo_coefs = [...initConds.fire_ice.romeo];
-let juliet_coefs = [...initConds.fire_ice.juliet];
+// Case 1: a^2 - b^2 > 0 => real eigen values
+// |a| > |b| => -sqrt(a^2 - b^2) < 0 < sqrt(a^2 - b^2)
+const romeo_coefs = [2, 1];
+const juliet_coefs = scenarios(...romeo_coefs).fire_ice;
+
+// a > b > 0
+// Romeo: Eager beaver
+// Juliet: Hermit
+
+// a > 0 > b
+// Romeo: Narcissistic
+// Juliet: Cautious
+
+// *************************************************** //
+
+// Case 2: a^2 - b^2 < 0 => complex eigen values
+// |a| < |b| => ± sqrt(a^2 - b^2) = ± i sqrt(b^2 - a^2)
+// sines and cosines (Euler's formula)
+
+// b > a > 0
+// Romeo: Eager beaver
+// Juliet: Hermit
+
+// a > 0 > b
+// Romeo: Narcissistic
+// Juliet: Cautious
 
 const PI_6 = Math.PI / 6;
 
@@ -36,21 +55,21 @@ let HALF_WIDTH, HALF_HEIGHT;
 const $a = $("#a");
 const $b = $("#b");
 // const $c = $("#c");
-const $$d = $("#d");
-const $$e = $("#e");
+const $d = $("#d");
+const $e = $("#e");
 // const $f = $("#f");
 const $speed = $("#speed");
 const $reset = $("#reset");
 const $play = $("#play");
 
-let speed = 0.01;
+let speed = 0.1;
 let paused = true;
 
 let points = [];
 let vectorCache = [];
 
 const n = 100;
-const trail = 5;
+const trail = 0;
 const steps = 50;
 
 const maxSamples = 40;
@@ -74,12 +93,12 @@ function setup() {
 function draw() {
   mainBG();
   drawVectorField();
-
+  console.log("drawing");
   stroke(255, 100, 100, 80);
   strokeWeight(5);
   for (let p of points) {
     p.show();
-    p.update(initConds.fire_ice, speed);
+    // p.update(initConds.fire_ice, speed);
   }
 
   const rate = frameRate();
@@ -88,10 +107,7 @@ function draw() {
     samples[sampleIndex] = rate;
     sampleIndex = (sampleIndex + 1) % maxSamples;
   }
-  if (frameCount % 60 === 0) {
-    // Log only every 60 frames
-    console.log("Avg FPS", sum / samples.length);
-  }
+  console.log("Avg FPS", sum / samples.length);
 }
 
 function drawVectorField() {
@@ -169,6 +185,7 @@ function computeVectorField(steps = 20, maxMagnitude = 15) {
 
 function updateVectorField(steps = 20, maxMagnitude = 15) {
   vectorCache.length = 0;
+  mainBG();
   computeVectorField(steps, maxMagnitude);
   drawVectorField();
 }
@@ -192,12 +209,12 @@ function setupInputs() {
     romeo_coefs[1] = Number($b.value);
     updateVectorField(steps);
   });
-  $$d.addEventListener("input", () => {
-    juliet_coefs[0] = Number($$d.value);
+  $d.addEventListener("input", () => {
+    juliet_coefs[0] = Number($d.value);
     updateVectorField(steps);
   });
-  $$e.addEventListener("input", () => {
-    juliet_coefs[1] = Number($$e.value);
+  $e.addEventListener("input", () => {
+    juliet_coefs[1] = Number($e.value);
     updateVectorField(steps);
   });
   $speed.addEventListener("input", () => {
@@ -212,13 +229,12 @@ function setupInputs() {
 
 function initInputs() {
   setupInputs();
-  [$a.value, $b.value] = romeo_coefs = initConds.fire_ice.romeo;
-  [$$d.value, $$e.value] = juliet_coefs = initConds.fire_ice.juliet;
+  [$a.value, $b.value] = romeo_coefs;
+  [$d.value, $e.value] = juliet_coefs;
   $speed.value = speed;
 }
 
 function reset() {
-  console.log("RESET");
   $play.innerText = "Start";
   randomizePoints(n, trail);
   paused = true;
