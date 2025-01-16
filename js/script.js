@@ -53,11 +53,17 @@ const PI_6 = Math.PI / 6;
 let HALF_WIDTH, HALF_HEIGHT;
 
 const $a = $("#a");
+const $a_input = $("#a_input");
 const $b = $("#b");
+const $b_input = $("#b_input");
 // const $c = $("#c");
+// const $c_input = $("#c_input");
 const $d = $("#d");
+const $d_input = $("#d_input");
 const $e = $("#e");
+const $e_input = $("#e_input");
 // const $f = $("#f");
+// const $f_input = $("#f_input");
 const $speed = $("#speed");
 const $reset = $("#reset");
 const $play = $("#play");
@@ -202,21 +208,41 @@ function randomizePoints(size = 100, trailLength = 0) {
 
 function setupInputs() {
   $a.addEventListener("input", () => {
-    romeo_coefs[0] = Number($a.value);
+    $a_input.value = romeo_coefs[0] = Number($a.value);
     updateVectorField(steps);
   });
+  $a_input.addEventListener("input", () => {
+    $a.value = romeo_coefs[0] = Number($a_input.value);
+    updateVectorField(steps);
+  });
+
   $b.addEventListener("input", () => {
-    romeo_coefs[1] = Number($b.value);
+    $b_input.value = romeo_coefs[1] = Number($b.value);
     updateVectorField(steps);
   });
+  $b_input.addEventListener("input", () => {
+    $b.value = romeo_coefs[1] = Number($b_input.value);
+    updateVectorField(steps);
+  });
+
   $d.addEventListener("input", () => {
-    juliet_coefs[0] = Number($d.value);
+    $d_input.value = juliet_coefs[0] = Number($d.value);
     updateVectorField(steps);
   });
+  $d_input.addEventListener("input", () => {
+    $d.value = juliet_coefs[0] = Number($d_input.value);
+    updateVectorField(steps);
+  });
+
   $e.addEventListener("input", () => {
-    juliet_coefs[1] = Number($e.value);
+    $e_input.value = juliet_coefs[1] = Number($e.value);
     updateVectorField(steps);
   });
+  $e_input.addEventListener("input", () => {
+    $e.value = juliet_coefs[1] = Number($e_input.value);
+    updateVectorField(steps);
+  });
+
   $speed.addEventListener("input", () => {
     console.log($speed.value);
     speed = Number($speed.value);
@@ -229,8 +255,8 @@ function setupInputs() {
 
 function initInputs() {
   setupInputs();
-  [$a.value, $b.value] = romeo_coefs;
-  [$d.value, $e.value] = juliet_coefs;
+  [$a.value, $b.value] = [$a_input.value, $b_input.value] = romeo_coefs;
+  [$d.value, $e.value] = [$d_input.value, $e_input.value] = juliet_coefs;
   $speed.value = speed;
 }
 
